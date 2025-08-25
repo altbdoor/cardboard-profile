@@ -1,0 +1,26 @@
+{
+  "name": "cardboard-profile",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc -b && vite build",
+    "preview": "vite preview",
+    "pretty": "prettier -wu --log-level warn \"**/*\""
+  },
+  "dependencies": {
+    "bootstrap": "^5.3.7",
+    "vue": "^3.5.18"
+  },
+  "devDependencies": {
+    "@types/node": "^24.3.0",
+    "@vitejs/plugin-vue": "^6.0.1",
+    "@vue/tsconfig": "^0.7.0",
+    "prettier": "^3.6.2",
+    "typescript": "~5.8.3",
+    "vite": "^7.1.2",
+    "vue-tsc": "^3.0.5",
+    "zx": "^8.8.1"
+  }
+}
