@@ -32,7 +32,7 @@ var CARDBOARD = (function () {
   var PARAMS_URI_PREFIX = "http://google.com/cardboard/cfg?p=";
 
   var DeviceParams = dcodeIO.ProtoBuf.loadProtoFile(
-    "./CardboardDevice.proto",
+    "./vendor/CardboardDevice.proto",
   ).build().DeviceParams;
 
   function paramsToUri(params) {
