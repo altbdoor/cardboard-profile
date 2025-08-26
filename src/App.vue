@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { isProxy, ref, toRaw } from "vue";
 import {
   getDefaultParams,
   type CardboardParams,
@@ -22,9 +22,14 @@ const handleSubmit = () => {
     if (key.includes("_distance") && typeof val === "number") {
       cardboardObj[key] = val / 1000;
     } else {
-      cardboardObj[key] = val;
+      if (isProxy(val)) {
+        cardboardObj[key] = toRaw(val);
+      } else {
+        cardboardObj[key] = val;
+      }
     }
   });
+  console.log(cardboardObj);
 
   const cleanedB64 = (cardboardObj.toBase64() as string)
     .replaceAll("+", "-")

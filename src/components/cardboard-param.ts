@@ -36,7 +36,7 @@ export const getDefaultParams = (): CardboardParams => {
     inter_lens_distance: 60, // need to divide 1000
     screen_to_lens_distance: 42, // need to divide 1000
     tray_to_lens_distance: 35, // need to divide 1000
-    distortion_coefficients: [0.34, 0.34],
+    distortion_coefficients: [0.25, 0.25],
     left_eye_field_of_view_angles: [50, 50, 50, 50],
   };
 };
