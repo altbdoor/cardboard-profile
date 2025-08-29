@@ -1,23 +1,28 @@
 <script setup lang="ts">
+import { watchTriggerable } from "@vueuse/core";
 import { toCanvas, toString } from "qrcode";
-import { nextTick, ref, watch } from "vue";
+import { computed, onMounted, ref } from "vue";
 
-const props = defineProps<{ url: string }>();
+const props = defineProps<{ config: string }>();
 const canvasRef = ref<HTMLCanvasElement | null>(null);
 
-watch(
-  () => props.url,
-  async (url) => {
-    await nextTick();
+const googleCardboardUrl = "http://google.com/cardboard/cfg?p=";
+const computedUrl = computed(() => googleCardboardUrl + props.config);
 
-    if (!url || !canvasRef.value) {
+const { trigger: triggerCheckConfig } = watchTriggerable(
+  computedUrl,
+  async (configUrl) => {
+    if (!canvasRef.value) {
       return;
     }
 
-    toCanvas(canvasRef.value, url);
+    toCanvas(canvasRef.value, configUrl);
   },
-  { immediate: true },
 );
+
+onMounted(() => {
+  triggerCheckConfig();
+});
 
 const saveImageAs = async (mode: "png" | "svg") => {
   if (!canvasRef.value) {
@@ -26,7 +31,7 @@ const saveImageAs = async (mode: "png" | "svg") => {
 
   const blob = await new Promise<Blob | null>(async (resolve) => {
     if (mode === "svg") {
-      const svgStr = await toString(props.url, { type: "svg" });
+      const svgStr = await toString(computedUrl.value, { type: "svg" });
       const svgBlob = new Blob([svgStr], { type: "image/svg+xml" });
       resolve(svgBlob);
     } else {
@@ -50,16 +55,19 @@ const saveImageAs = async (mode: "png" | "svg") => {
 <template>
   <div class="card">
     <div class="card-body">
-      <div class="alert alert-info" v-if="!props.url">
-        Adjust the parameters, and click on Generate profile!
+      <div class="alert alert-info text-center">
+        Adjust the parameters, and wait for the QR to change!
       </div>
 
-      <div v-show="!!props.url">
+      <div class="d-flex flex-column gap-3">
         <div class="text-center">
-          <canvas ref="canvasRef"></canvas>
+          <canvas
+            ref="canvasRef"
+            class="border border-secondary-subtle"
+          ></canvas>
         </div>
 
-        <div class="pt-3 d-flex gap-3 justify-content-center">
+        <div class="d-flex gap-3 justify-content-center">
           <button
             class="btn btn-outline-secondary"
             type="button"
@@ -76,8 +84,14 @@ const saveImageAs = async (mode: "png" | "svg") => {
           </button>
         </div>
 
-        <div class="pt-3 text-center">
-          <a :href="props.url" target="_blank"> Cardboard profile URL </a>
+        <textarea
+          class="form-control"
+          rows="3"
+          readonly
+          :value="computedUrl"
+        ></textarea>
+        <div class="text-center">
+          <a :href="computedUrl" target="_blank"> Cardboard profile URL </a>
         </div>
       </div>
     </div>

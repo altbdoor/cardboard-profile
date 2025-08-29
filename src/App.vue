@@ -1,43 +1,35 @@
 <script setup lang="ts">
-import { isProxy, ref, toRaw } from "vue";
-import {
-  getDefaultParams,
-  type CardboardParams,
-} from "./components/cardboard-param";
+import { useUrlSearchParams } from "@vueuse/core";
+import { computed, ref } from "vue";
 import CardboardForm from "./components/CardboardForm.vue";
 import ProfileOutput from "./components/ProfileOutput.vue";
 
-const params = ref<CardboardParams>(getDefaultParams());
-const googleCardboardUrl = "http://google.com/cardboard/cfg?p=";
+const router = useUrlSearchParams();
+const initialConfig = ref(String(router.p ?? ""));
+const reactiveConfig = computed(() => String(router.p ?? ""));
 
-const generatedUrl = ref("");
+const handleSubmit = (config: string) => {
+  router.p = config;
+};
 
-const handleSubmit = () => {
-  const cardboardObj = (window as any).CARDBOARD.uriToParamsProto(
-    googleCardboardUrl,
-  );
+const changeInitialConfig = () => {
+  const existingUrl = prompt("Please paste in the cardboard profile URL");
+  if (!existingUrl) {
+    return;
+  }
 
-  Object.entries(params.value).forEach(([key, val]) => {
-    // converts mm values to m
-    if (key.includes("_distance") && typeof val === "number") {
-      cardboardObj[key] = val / 1000;
-    } else {
-      if (isProxy(val)) {
-        cardboardObj[key] = toRaw(val);
-      } else {
-        cardboardObj[key] = val;
-      }
+  try {
+    const existingUrlObj = new URL(existingUrl);
+    const configP = existingUrlObj.searchParams.get("p") ?? "";
+    if (configP === "") {
+      throw Error("Unable to find profile parameter");
     }
-  });
-  console.log(cardboardObj);
 
-  const cleanedB64 = (cardboardObj.toBase64() as string)
-    .replaceAll("+", "-")
-    .replaceAll("/", "_")
-    .replace(/\=+$/, "");
-
-  /** @todo: save url state into query params */
-  generatedUrl.value = googleCardboardUrl + cleanedB64;
+    initialConfig.value = configP;
+  } catch (err) {
+    console.error(err);
+    alert("Invalid cardboard profile URL.");
+  }
 };
 </script>
 
@@ -58,21 +50,22 @@ const handleSubmit = () => {
     >
     on how to fill the fields.
   </p>
+  <p>
+    Alternatively,
+    <a href="#" @click.prevent="changeInitialConfig">click here</a> to reuse an
+    existing cardboard profile URL.
+  </p>
 
   <div class="row">
     <div class="col-md-8">
-      <form @submit.prevent="handleSubmit">
-        <CardboardForm v-model="params" />
-        <div class="pt-3">
-          <button type="submit" class="btn btn-lg btn-primary w-100">
-            Generate profile QR
-          </button>
-        </div>
-      </form>
+      <CardboardForm
+        :initial-config="initialConfig"
+        @update:config="handleSubmit"
+      />
     </div>
     <div class="col-md-4 position-relative">
       <div class="sticky-md-top pt-3">
-        <ProfileOutput :url="generatedUrl" />
+        <ProfileOutput :config="reactiveConfig" />
       </div>
     </div>
   </div>

@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { watchDebounced } from "@vueuse/core";
+import { reactive, watch } from "vue";
 import {
   getDefaultParams,
   PrimaryButton,
@@ -6,11 +8,75 @@ import {
   type CardboardParams,
 } from "./cardboard-param";
 
-const params = defineModel<CardboardParams>({
-  default: getDefaultParams,
-});
+const props = defineProps<{ initialConfig: string }>();
+const emit = defineEmits<{ (e: "update:config", value: string): void }>();
+
+const getCardboard = (config: string) => {
+  const googleCardboardUrl = "http://google.com/cardboard/cfg?p=";
+
+  try {
+    const cardboardObj = (window as any).CARDBOARD.uriToParamsProto(
+      googleCardboardUrl + config,
+    );
+    return cardboardObj;
+  } catch (err) {
+    alert("Invalid config hash");
+    console.error(err);
+  }
+
+  return {};
+};
+
+const params = reactive<CardboardParams>(getDefaultParams());
+
+watch(
+  () => props.initialConfig,
+  (initialConfig) => {
+    if (initialConfig === "") {
+      return;
+    }
+
+    let cardboardObj = getCardboard(initialConfig);
+    Object.entries(cardboardObj).forEach(([key, val]) => {
+      // converts m values to mm
+      if (key.includes("_distance") && typeof val === "number") {
+        cardboardObj[key] = Math.round(val * 1000);
+      }
+    });
+
+    Object.assign(params, cardboardObj);
+  },
+  { immediate: true },
+);
+
+watchDebounced(
+  params,
+  (newVal) => {
+    let cardboardObj = getCardboard("");
+
+    Object.assign(cardboardObj, newVal);
+    Object.entries(cardboardObj).forEach(([key, val]) => {
+      // converts mm values to m
+      if (key.includes("_distance") && typeof val === "number") {
+        cardboardObj[key] = val / 1000;
+      }
+    });
+
+    const cleanedB64 = (cardboardObj.toBase64() as string)
+      .replaceAll("+", "-")
+      .replaceAll("/", "_")
+      .replace(/\=+$/, "");
+
+    emit("update:config", cleanedB64);
+  },
+  { deep: true, debounce: 200 },
+);
 
 const fovAngles = ["Outer", "Inner", "Top", "Bottom"] as const;
+
+const handleReset = () => {
+  Object.assign(params, getDefaultParams());
+};
 </script>
 
 <template>
@@ -140,6 +206,16 @@ const fovAngles = ["Outer", "Inner", "Top", "Bottom"] as const;
           />
         </div>
       </div>
+    </div>
+
+    <div>
+      <button
+        type="button"
+        class="btn btn-outline-secondary"
+        @click="handleReset"
+      >
+        Reset values
+      </button>
     </div>
   </div>
 </template>
