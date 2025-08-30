@@ -2,12 +2,16 @@
 import { watchTriggerable } from "@vueuse/core";
 import { toCanvas, toString } from "qrcode";
 import { computed, onMounted, ref } from "vue";
+import { getGooglePrefix } from "./cardboard-param";
 
 const props = defineProps<{ config: string }>();
 const canvasRef = ref<HTMLCanvasElement | null>(null);
 
-const googleCardboardUrl = "http://google.com/cardboard/cfg?p=";
-const computedUrl = computed(() => googleCardboardUrl + props.config);
+const computedUrl = computed(() => {
+  const googleCardboardUrl = getGooglePrefix();
+  googleCardboardUrl.searchParams.set("p", props.config);
+  return googleCardboardUrl.toString();
+});
 
 const { trigger: triggerCheckConfig } = watchTriggerable(
   computedUrl,
@@ -42,7 +46,7 @@ const saveImageAs = async (mode: "png" | "svg") => {
   });
 
   if (!blob) {
-    alert("Unable to generate QR code image to save");
+    alert("Unable to generate QR code image to save.");
     return;
   }
 

@@ -3,6 +3,7 @@ import { watchDebounced } from "@vueuse/core";
 import { reactive, watch } from "vue";
 import {
   getDefaultParams,
+  getGooglePrefix,
   PrimaryButton,
   VerticalAlignment,
   type CardboardParams,
@@ -12,15 +13,16 @@ const props = defineProps<{ initialConfig: string }>();
 const emit = defineEmits<{ (e: "update:config", value: string): void }>();
 
 const getCardboard = (config: string) => {
-  const googleCardboardUrl = "http://google.com/cardboard/cfg?p=";
+  const googleCardboardUrl = getGooglePrefix();
+  googleCardboardUrl.searchParams.set("p", config);
 
   try {
     const cardboardObj = (window as any).CARDBOARD.uriToParamsProto(
-      googleCardboardUrl + config,
+      googleCardboardUrl.toString(),
     );
     return cardboardObj;
   } catch (err) {
-    alert("Invalid config hash");
+    alert("Invalid config hash.");
     console.error(err);
   }
 

@@ -11,6 +11,9 @@ export const VerticalAlignment = {
   Top: 2,
 } as const;
 
+export const GOOGLE_PREFIX = "http://google.com/cardboard/cfg?p=";
+export const getGooglePrefix = () => new URL(GOOGLE_PREFIX);
+
 type ValueOf<T> = T[keyof T];
 
 export interface CardboardParams {

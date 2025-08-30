@@ -13,7 +13,7 @@ const handleSubmit = (config: string) => {
 };
 
 const changeInitialConfig = () => {
-  const existingUrl = prompt("Please paste in the cardboard profile URL");
+  const existingUrl = prompt("Please paste in the cardboard profile URL.");
   if (!existingUrl) {
     return;
   }
@@ -42,7 +42,7 @@ const changeInitialConfig = () => {
   <p>
     Generating Google Cardboard profile based on
     <a href="https://stackoverflow.com/a/77317690">StackOverflow</a>, because
-    the <a href="https://wwgc.firebaseapp.com/">original site</a> is dead.
+    the <a href="https://wwgc.firebaseapp.com/">original site</a> is buggy.
     Please check the
     <a
       href="https://support.google.com/cardboard/manufacturers/checklist/6322188"
@@ -69,4 +69,8 @@ const changeInitialConfig = () => {
       </div>
     </div>
   </div>
+
+  <hr />
+
+  <a href="https://github.com/altbdoor/cardboard-profile">GitHub</a>
 </template>
